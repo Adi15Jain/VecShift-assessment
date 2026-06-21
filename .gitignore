@@ -1,3 +1,11 @@
 frontend/node_modules
 frontend/.git
 frontend/build
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+

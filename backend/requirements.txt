@@ -1,0 +1,7 @@
+# Lower-bound pins: install the latest compatible wheels on any Python 3.9+.
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+# Dev / test only:
+pytest>=8.0
+httpx>=0.27

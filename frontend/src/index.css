@@ -1,14 +1,1756 @@
+/* index.css — VectorShift-inspired design system
+   ==================================================================
+   App shell (top bar + sidebar + canvas), node cards with typed
+   handles, custom toasts, and the onboarding/tour surfaces.
+   All tokens live in :root so the whole app re-skins from one place. */
+
+:root {
+    --vs-primary: #6366f1;
+    --vs-primary-dark: #4f46e5;
+    --vs-primary-soft: #eef2ff;
+    --vs-violet: #8b5cf6;
+
+    --vs-canvas: #f3f4f8;
+    --vs-surface: #ffffff;
+    --vs-surface-muted: #f7f8fb;
+    --vs-border: #e6e8ee;
+    --vs-border-strong: #d6dae3;
+
+    --vs-text: #0f172a;
+    --vs-text-muted: #5b6472;
+    --vs-text-faint: #97a0b0;
+
+    --vs-navy: #0e1424;
+    --vs-navy-soft: #1a2336;
+
+    --vs-radius-sm: 6px;
+    --vs-radius-md: 10px;
+    --vs-radius-lg: 14px;
+
+    --vs-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --vs-shadow-node:
+        0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 22px rgba(15, 23, 42, 0.08);
+    --vs-shadow-node-hover:
+        0 2px 4px rgba(15, 23, 42, 0.06), 0 16px 40px rgba(79, 70, 229, 0.18);
+    --vs-shadow-pop: 0 24px 60px rgba(15, 23, 42, 0.28);
+}
+
+/* ---------------------------------------------------------- Dark theme
+   Every surface/text/border token is re-pointed; because the whole app reads
+   these variables, switching `data-theme` recolours everything at once. */
+:root[data-theme="dark"] {
+    --vs-primary: #818cf8;
+    --vs-primary-dark: #a5b4fc;
+    --vs-primary-soft: #20243f;
+    --vs-violet: #a78bfa;
+
+    --vs-canvas: #0c111d;
+    --vs-surface: #161d2e;
+    --vs-surface-muted: #1d2638;
+    --vs-border: #2a3346;
+    --vs-border-strong: #3a4459;
+
+    --vs-text: #e6e9f0;
+    --vs-text-muted: #9aa3b5;
+    --vs-text-faint: #6c7689;
+
+    --vs-navy: #0a0e18;
+    --vs-navy-soft: #161d2e;
+
+    --vs-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --vs-shadow-node:
+        0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 22px rgba(0, 0, 0, 0.45);
+    --vs-shadow-node-hover:
+        0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 40px rgba(99, 102, 241, 0.28);
+    --vs-shadow-pop: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+    color-scheme: dark;
+}
+
+/* Dark-mode tweaks for things that can't be expressed purely via tokens. */
+:root[data-theme="dark"] .vs-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aa3b5' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="dark"] .vs-canvas .react-flow__edge-path {
+    stroke: #475569;
+}
+
+:root[data-theme="dark"] .vs-input:focus {
+    background: var(--vs-surface);
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-        sans-serif;
+        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+        "Helvetica Neue", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color: var(--vs-text);
+    background: var(--vs-canvas);
 }
 
 code {
-    font-family:
-        source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, monospace;
+}
+
+/* =============================================================== Shell */
+.vs-app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+.vs-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+}
+
+.vs-stage {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+/* ============================================================== TopBar */
+.vs-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 58px;
+    padding: 0 18px;
+    background: var(--vs-navy);
+    color: #fff;
+    z-index: 20;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.vs-topbar__left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vs-topbar__namewrap {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.vs-topbar__name {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14.5px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 2px 6px;
+    margin-left: -6px;
+    width: 200px;
+    outline: none;
+}
+
+.vs-topbar__name:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.vs-topbar__name:focus {
+    border-color: var(--vs-primary);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.vs-topbar__crumb {
+    font-size: 11px;
+    color: var(--vs-text-faint);
+    padding-left: 1px;
+}
+
+.vs-topbar__right {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+/* ============================================================= Buttons */
+.vs-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    font-family: inherit;
+    border-radius: var(--vs-radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease,
+        background 0.12s ease,
+        border-color 0.12s ease,
+        opacity 0.12s ease;
+    white-space: nowrap;
+}
+
+.vs-btn--sm {
+    padding: 6px 12px;
+    font-size: 12.5px;
+}
+
+.vs-btn--primary {
+    color: #fff;
+    background: linear-gradient(135deg, var(--vs-primary), var(--vs-violet));
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.vs-btn--primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(99, 102, 241, 0.5);
+}
+
+.vs-btn--primary:disabled {
+    opacity: 0.65;
+    cursor: progress;
+}
+
+/* light-surface defaults */
+.vs-btn--secondary {
+    color: var(--vs-text);
+    background: var(--vs-surface);
+    border-color: var(--vs-border-strong);
+}
+
+.vs-btn--secondary:hover {
+    background: var(--vs-surface-muted);
+}
+
+.vs-btn--ghost {
+    color: var(--vs-text-muted);
+    background: transparent;
+}
+
+.vs-btn--ghost:hover {
+    background: var(--vs-surface-muted);
+    color: var(--vs-text);
+}
+
+/* dark-surface overrides inside the top bar */
+.vs-topbar .vs-btn--secondary {
+    color: #e7eaf2;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.vs-topbar .vs-btn--secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.vs-topbar .vs-btn--ghost {
+    color: #c4cbd8;
+}
+
+.vs-topbar .vs-btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.vs-iconbtn {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: #c4cbd8;
+    cursor: pointer;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+
+.vs-iconbtn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.vs-iconbtn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* Undo/redo pair, separated from the rest of the actions by a divider. */
+.vs-topbar__group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 10px;
+    margin-right: 2px;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Help dropdown */
+.vs-help {
+    position: relative;
+}
+
+.vs-help__menu {
+    position: absolute;
+    right: 0;
+    top: 44px;
+    width: 190px;
+    background: var(--vs-surface);
+    border: 1px solid var(--vs-border);
+    border-radius: var(--vs-radius-md);
+    box-shadow: var(--vs-shadow-pop);
+    padding: 6px;
+    z-index: 30;
+    animation: vs-pop 0.14s ease;
+}
+
+.vs-help__menu button {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 9px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--vs-text);
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.vs-help__menu button:hover {
+    background: var(--vs-primary-soft);
+    color: var(--vs-primary-dark);
+}
+
+/* ============================================================= Sidebar */
+.vs-sidebar {
+    width: 232px;
+    flex-shrink: 0;
+    background: var(--vs-surface);
+    border-right: 1px solid var(--vs-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.vs-sidebar__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 16px 16px 10px;
+}
+
+.vs-sidebar__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.vs-sidebar__count {
+    font-size: 11px;
+    color: var(--vs-text-faint);
+    font-weight: 500;
+}
+
+.vs-sidebar__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 14px 8px;
+    padding: 8px 10px;
+    background: var(--vs-surface-muted);
+    border: 1px solid var(--vs-border);
+    border-radius: var(--vs-radius-md);
+    color: var(--vs-text-faint);
+}
+
+.vs-sidebar__search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--vs-text);
+    outline: none;
+}
+
+.vs-sidebar__search button {
+    border: none;
+    background: transparent;
+    color: var(--vs-text-faint);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+
+.vs-sidebar__scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 10px 10px;
+}
+
+.vs-sidebar__empty {
+    font-size: 13px;
+    color: var(--vs-text-faint);
+    text-align: center;
+    padding: 24px 10px;
+}
+
+.vs-sidebar__hint {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 16px;
+    font-size: 12px;
+    color: var(--vs-text-muted);
+    border-top: 1px solid var(--vs-border);
+    background: var(--vs-surface-muted);
+}
+
+/* palette groups */
+.vs-palette-group {
+    margin-bottom: 4px;
+}
+
+.vs-palette-group__head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    padding: 9px 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--vs-text-muted);
+    font-family: inherit;
+}
+
+.vs-palette-group__head:hover {
+    color: var(--vs-text);
+}
+
+.vs-palette-group__count {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--vs-text-faint);
+    background: var(--vs-surface-muted);
+    border: 1px solid var(--vs-border);
+    border-radius: 20px;
+    padding: 1px 7px;
+}
+
+.vs-palette-group__items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 6px;
+}
+
+.vs-palette-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 9px;
+    border-radius: var(--vs-radius-md);
+    border: 1px solid transparent;
+    cursor: grab;
+    user-select: none;
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease,
+        transform 0.1s ease;
+}
+
+.vs-palette-item:hover {
+    background: var(--vs-surface-muted);
+    border-color: var(--vs-border);
+    transform: translateX(2px);
+}
+
+.vs-palette-item:active {
+    cursor: grabbing;
+}
+
+.vs-palette-item__icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    border: 1px solid;
+    flex-shrink: 0;
+}
+
+.vs-palette-item__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    min-width: 0;
+}
+
+.vs-palette-item__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vs-text);
+}
+
+.vs-palette-item__sub {
+    font-size: 11px;
+    color: var(--vs-text-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ============================================================== Canvas */
+.vs-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+.vs-canvas .react-flow__attribution {
+    display: none;
+}
+
+.vs-canvas .react-flow__controls {
+    border-radius: var(--vs-radius-md);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-node);
+    border: 1px solid var(--vs-border);
+}
+
+.vs-canvas .react-flow__controls-button {
+    background: var(--vs-surface);
+    border-bottom: 1px solid var(--vs-border);
+    color: var(--vs-text-muted);
+}
+
+/* ReactFlow's control icons are SVGs with a hardcoded dark fill; force them to
+   follow the button's text colour so they're visible in dark mode too. */
+.vs-canvas .react-flow__controls-button svg {
+    fill: currentColor;
+}
+
+.vs-canvas .react-flow__controls-button:hover {
+    background: var(--vs-primary-soft);
+    color: var(--vs-primary);
+}
+
+.vs-canvas .react-flow__minimap {
+    border-radius: var(--vs-radius-md);
+    box-shadow: var(--vs-shadow-node);
+    border: 1px solid var(--vs-border);
+    overflow: hidden;
+    transition: opacity 0.35s ease;
+}
+
+/* Faded out when the cursor is idle. */
+.vs-canvas .react-flow__minimap.vs-minimap--hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.vs-canvas .react-flow__edge-path {
+    stroke: #b4bcce;
+    stroke-width: 2;
+}
+
+.vs-canvas .react-flow__edge.animated .react-flow__edge-path,
+.vs-canvas .react-flow__edge.selected .react-flow__edge-path,
+.vs-canvas .react-flow__edge:hover .react-flow__edge-path {
+    stroke: var(--vs-primary);
+}
+
+.vs-canvas .react-flow__node.selected .vs-node__card {
+    border-color: var(--vs-primary);
+    box-shadow: var(--vs-shadow-node-hover);
+}
+
+/* ================================================================ Node */
+/* Outer wrapper: positioning context only. overflow-visible so the gutter port
+   labels aren't clipped. */
+.vs-node {
+    position: relative;
+    display: inline-block;
+    font-size: 13px;
+}
+
+/* Inner card: the visible node. overflow-hidden clips the accent stripe to the
+   rounded corners (a 3px bar can't be rounded to a 14px radius on its own). */
+.vs-node__card {
+    position: relative;
+    background: var(--vs-surface);
+    border: 1px solid var(--vs-border);
+    border-radius: var(--vs-radius-lg);
+    box-shadow: var(--vs-shadow-node);
+    overflow: hidden;
+    transition:
+        box-shadow 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.vs-node:hover .vs-node__card {
+    box-shadow: var(--vs-shadow-node-hover);
+}
+
+.vs-node__accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+}
+
+.vs-node__header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 14px 11px;
+    border-bottom: 1px solid var(--vs-border);
+    border-radius: var(--vs-radius-lg) var(--vs-radius-lg) 0 0;
+    background: linear-gradient(
+        180deg,
+        var(--vs-surface-muted),
+        var(--vs-surface)
+    );
+}
+
+.vs-node__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    border: 1px solid;
+    flex-shrink: 0;
+}
+
+.vs-node__titles {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    min-width: 0;
+}
+
+.vs-node__title {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--vs-text);
+}
+
+.vs-node__subtitle {
+    font-size: 11px;
+    color: var(--vs-text-faint);
+}
+
+.vs-node__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px 14px;
+}
+
+.vs-node__desc {
+    margin: 0;
+    font-size: 12px;
+    color: var(--vs-text-muted);
+    line-height: 1.4;
+}
+
+/* collapse button in the expanded header */
+.vs-node__collapse {
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border: none;
+    background: transparent;
+    color: var(--vs-text-faint);
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0;
+    transition:
+        opacity 0.12s ease,
+        background 0.12s ease,
+        color 0.12s ease;
+}
+
+.vs-node:hover .vs-node__collapse {
+    opacity: 1;
+}
+
+.vs-node__collapse:hover {
+    background: var(--vs-surface-muted);
+    color: var(--vs-text);
+}
+
+/* -------------------------------------------------- Compact (n8n-style) node */
+.vs-node__tile {
+    width: 84px;
+    height: 84px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.vs-node__tile-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+}
+
+/* Caption sits BELOW the tile, floated (absolute) so it doesn't change the
+   node's measured size — handles stay centred on the tile and edges anchor
+   correctly. */
+.vs-node__caption {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 9px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.vs-node__caption-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vs-text);
+    pointer-events: auto;
+    cursor: text;
+}
+
+.vs-node__caption-sub {
+    font-size: 11px;
+    color: var(--vs-text-faint);
+}
+
+/* In compact mode the gutter port labels would clutter the small tile. */
+.vs-node--compact .vs-handle__label {
+    display: none;
+}
+
+/* fields */
+.vs-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vs-field__label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--vs-text-faint);
+}
+
+.vs-input {
+    width: 100%;
+    padding: 7px 9px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--vs-text);
+    background: var(--vs-surface-muted);
+    border: 1px solid var(--vs-border);
+    border-radius: var(--vs-radius-sm);
+    outline: none;
+    transition:
+        border-color 0.12s ease,
+        box-shadow 0.12s ease,
+        background 0.12s ease;
+}
+
+.vs-input:focus {
+    border-color: var(--vs-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
+    background: #fff;
+}
+
+.vs-textarea {
+    resize: none;
+    overflow: hidden;
+    line-height: 1.45;
+    min-height: 34px;
+}
+
+.vs-select {
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235b6472' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+    padding-right: 26px;
+}
+
+/* handles */
+.vs-handle.react-flow__handle {
+    width: 11px;
+    height: 11px;
+    border: 2px solid #fff;
+    transition: transform 0.12s ease;
+}
+
+.vs-handle.react-flow__handle:hover {
+    transform: scale(1.3);
+}
+
+/* Port labels live OUTSIDE the card, in the side gutters, as small pills.
+   This guarantees they never overlap the node's own field labels. */
+.vs-handle__label {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.2px;
+    color: var(--vs-text-muted);
+    background: var(--vs-surface);
+    border: 1px solid var(--vs-border);
+    border-radius: 5px;
+    padding: 2px 6px;
+    box-shadow: var(--vs-shadow-sm);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* input handles: label sits just to the LEFT of the dot */
+.vs-handle__label--in {
+    right: 100%;
+    margin-right: 7px;
+}
+
+/* output handles: label sits just to the RIGHT of the dot */
+.vs-handle__label--out {
+    left: 100%;
+    margin-left: 7px;
+}
+
+/* ---------------------------------------------------- Node hover toolbar */
+.vs-node__toolbar {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    background: var(--vs-surface);
+    border: 1px solid var(--vs-border);
+    border-radius: 9px;
+    box-shadow: var(--vs-shadow-pop);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+    z-index: 12;
+}
+
+/* Invisible bridge across the gap so moving the cursor to the toolbar doesn't
+   drop the node's :hover state. */
+.vs-node__toolbar::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 10px;
+}
+
+.vs-node:hover .vs-node__toolbar,
+.react-flow__node.selected .vs-node__toolbar {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.vs-node__toolbar button {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: none;
+    background: transparent;
+    color: var(--vs-text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+
+.vs-node__toolbar button:hover {
+    background: var(--vs-surface-muted);
+    color: var(--vs-text);
+}
+
+.vs-node__toolbar-danger:hover {
+    background: rgba(244, 63, 94, 0.12) !important;
+    color: #f43f5e !important;
+}
+
+.vs-node__toolbar button:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* Play button looks muted while the node is off, but stays clickable so it can
+   explain why it won't run. */
+.vs-node__toolbar-muted {
+    opacity: 0.45;
+}
+
+/* Power button highlighted while the node is "shut off". */
+.vs-node__toolbar-active {
+    background: rgba(244, 63, 94, 0.16) !important;
+    color: #f43f5e !important;
+}
+
+.vs-node__toolbar-sep {
+    width: 1px;
+    align-self: stretch;
+    margin: 3px 2px;
+    background: var(--vs-border);
+}
+
+/* Pulsing ring while a single node is "executing". */
+.vs-node__card--running {
+    border-color: var(--vs-primary) !important;
+    animation: vs-node-run 1s ease-in-out infinite;
+}
+
+@keyframes vs-node-run {
+    0%,
+    100% {
+        box-shadow:
+            0 0 0 2px rgba(99, 102, 241, 0.45),
+            var(--vs-shadow-node);
+    }
+    50% {
+        box-shadow:
+            0 0 0 5px rgba(99, 102, 241, 0.18),
+            var(--vs-shadow-node-hover);
+    }
+}
+
+/* ------------------------------------------------------- Edge delete button */
+.vs-edge-delete {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    line-height: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--vs-border);
+    background: var(--vs-surface);
+    color: var(--vs-text-muted);
+    box-shadow: var(--vs-shadow-sm);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        opacity 0.12s ease,
+        background 0.12s ease,
+        color 0.12s ease,
+        border-color 0.12s ease;
+}
+
+/* Render the icon as a block so it centres exactly (no inline baseline gap). */
+.vs-edge-delete svg {
+    display: block;
+}
+
+.vs-edge-delete--show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.vs-edge-delete:hover {
+    background: #f43f5e;
+    color: #fff;
+    border-color: #f43f5e;
+}
+
+/* Keep the custom (feather, stroke-based) tidy-up control icon unfilled — the
+   global fill:currentColor rule is meant only for ReactFlow's built-in icons. */
+.vs-canvas .react-flow__controls-button svg.vs-control-icon {
+    fill: none;
+}
+
+/* ----------------------------------------------------- Disabled node + rename */
+.vs-node__card--disabled {
+    opacity: 0.55;
+    filter: grayscale(0.4);
+}
+
+.vs-node__title-edit {
+    font-weight: 600;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--vs-text);
+    background: var(--vs-surface);
+    border: 1px solid var(--vs-primary);
+    border-radius: 5px;
+    padding: 1px 5px;
+    outline: none;
+    width: 150px;
+    max-width: 100%;
+}
+
+/* -------------------------------------------------------------- Context menu */
+.vs-ctxmenu {
+    position: fixed;
+    z-index: 80;
+    min-width: 210px;
+    padding: 6px;
+    background: var(--vs-surface);
+    border: 1px solid var(--vs-border);
+    border-radius: 10px;
+    box-shadow: var(--vs-shadow-pop);
+    animation: vs-pop 0.12s ease;
+}
+
+.vs-ctxmenu__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--vs-text);
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.vs-ctxmenu__item:hover {
+    background: var(--vs-primary-soft);
+    color: var(--vs-primary-dark);
+}
+
+.vs-ctxmenu__icon {
+    display: grid;
+    place-items: center;
+    color: var(--vs-text-muted);
+}
+
+.vs-ctxmenu__item:hover .vs-ctxmenu__icon {
+    color: var(--vs-primary);
+}
+
+.vs-ctxmenu__label {
+    flex: 1;
+}
+
+.vs-ctxmenu__shortcut {
+    font-size: 11px;
+    color: var(--vs-text-faint);
+}
+
+.vs-ctxmenu__item--danger {
+    color: #f43f5e;
+}
+
+.vs-ctxmenu__item--danger:hover {
+    background: rgba(244, 63, 94, 0.12);
+    color: #f43f5e;
+}
+
+.vs-ctxmenu__item--danger .vs-ctxmenu__icon,
+.vs-ctxmenu__item--danger:hover .vs-ctxmenu__icon {
+    color: #f43f5e;
+}
+
+.vs-ctxmenu__divider {
+    height: 1px;
+    margin: 5px 6px;
+    background: var(--vs-border);
+}
+
+/* =============================================================== Toasts */
+.vs-toasts {
+    position: fixed;
+    top: 70px;
+    right: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 60;
+    width: 340px;
+    max-width: calc(100vw - 36px);
+}
+
+.vs-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 13px 13px 13px 14px;
+    background: var(--vs-surface);
+    border: 1px solid var(--vs-border);
+    border-left-width: 4px;
+    border-radius: var(--vs-radius-md);
+    box-shadow: var(--vs-shadow-pop);
+    animation: vs-slide-in 0.2s ease;
+}
+
+.vs-toast--success {
+    border-left-color: #10b981;
+}
+.vs-toast--success .vs-toast__icon {
+    color: #10b981;
+}
+.vs-toast--error {
+    border-left-color: #f43f5e;
+}
+.vs-toast--error .vs-toast__icon {
+    color: #f43f5e;
+}
+.vs-toast--warning {
+    border-left-color: #f59e0b;
+}
+.vs-toast--warning .vs-toast__icon {
+    color: #f59e0b;
+}
+.vs-toast--info {
+    border-left-color: var(--vs-primary);
+}
+.vs-toast--info .vs-toast__icon {
+    color: var(--vs-primary);
+}
+
+.vs-toast__icon {
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+.vs-toast__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.vs-toast__title {
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.vs-toast__msg {
+    font-size: 12.5px;
+    color: var(--vs-text-muted);
+    line-height: 1.4;
+}
+
+.vs-toast__close {
+    border: none;
+    background: transparent;
+    color: var(--vs-text-faint);
+    cursor: pointer;
+    padding: 2px;
+    display: grid;
+    place-items: center;
+    border-radius: 5px;
+}
+
+.vs-toast__close:hover {
+    background: var(--vs-surface-muted);
+    color: var(--vs-text);
+}
+
+/* =============================================================== Modal */
+.vs-modal__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(3px);
+    display: grid;
+    place-items: center;
+    z-index: 70;
+    animation: vs-fade 0.15s ease;
+}
+
+.vs-modal {
+    position: relative;
+    width: 400px;
+    max-width: calc(100vw - 40px);
+    background: var(--vs-surface);
+    border-radius: var(--vs-radius-lg);
+    padding: 30px 28px 22px;
+    text-align: center;
+    box-shadow: var(--vs-shadow-pop);
+    animation: vs-pop 0.18s ease;
+}
+
+.vs-modal__x,
+.vs-tour__tip .vs-modal__x {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    border: none;
+    background: transparent;
+    color: var(--vs-text-faint);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.vs-modal__x:hover {
+    background: var(--vs-surface-muted);
+    color: var(--vs-text);
+}
+
+.vs-modal__icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 14px;
+    color: #fff;
+}
+
+.vs-modal__icon--good {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+.vs-modal__icon--warn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.vs-modal__title {
+    margin: 0 0 6px;
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.vs-modal__text {
+    margin: 0;
+    font-size: 13px;
+    color: var(--vs-text-muted);
+    line-height: 1.5;
+}
+
+.vs-modal__stats {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 18px 0 14px;
+}
+
+.vs-stat {
+    flex: 1;
+    padding: 14px 8px;
+    background: var(--vs-surface-muted);
+    border: 1px solid var(--vs-border);
+    border-radius: var(--vs-radius-md);
+}
+
+.vs-stat__value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--vs-primary-dark);
+    line-height: 1;
+}
+
+.vs-stat__value--good {
+    color: #059669;
+}
+.vs-stat__value--warn {
+    color: #d97706;
+}
+
+.vs-stat__label {
+    display: block;
+    margin-top: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--vs-text-muted);
+}
+
+.vs-modal__close {
+    margin-top: 18px;
+    width: 100%;
+    padding: 11px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #fff;
+    background: linear-gradient(135deg, var(--vs-primary), var(--vs-violet));
+    border: none;
+    border-radius: var(--vs-radius-md);
+    cursor: pointer;
+}
+
+.vs-modal__close:hover {
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+/* ====================================================== Welcome carousel */
+.vs-welcome {
+    position: relative;
+    width: 440px;
+    max-width: calc(100vw - 40px);
+    background: var(--vs-surface);
+    border-radius: 18px;
+    padding: 34px 32px 26px;
+    text-align: center;
+    box-shadow: var(--vs-shadow-pop);
+    animation: vs-pop 0.2s ease;
+}
+
+.vs-welcome__art {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 18px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    font-size: 32px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--vs-primary), var(--vs-violet));
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.45);
+}
+
+.vs-welcome__title {
+    margin: 0 0 10px;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.vs-welcome__body {
+    margin: 0 auto;
+    max-width: 360px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--vs-text-muted);
+}
+
+.vs-welcome__dots {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    margin: 22px 0;
+}
+
+.vs-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vs-border-strong);
+    cursor: pointer;
+    transition:
+        background 0.12s ease,
+        width 0.12s ease;
+}
+
+.vs-dot--on {
+    width: 22px;
+    border-radius: 4px;
+    background: var(--vs-primary);
+}
+
+.vs-welcome__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.vs-welcome__cta {
+    display: flex;
+    gap: 8px;
+}
+
+/* =============================================================== Tour */
+.vs-tour {
+    position: fixed;
+    inset: 0;
+    z-index: 65;
+}
+
+.vs-tour__dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(14, 20, 36, 0.55);
+}
+
+.vs-tour__hole {
+    position: fixed;
+    border-radius: 12px;
+    box-shadow:
+        0 0 0 9999px rgba(14, 20, 36, 0.58),
+        0 0 0 2px var(--vs-primary);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.vs-tour__tip {
+    position: fixed;
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    background: var(--vs-surface);
+    border-radius: var(--vs-radius-lg);
+    padding: 18px 18px 14px;
+    box-shadow: var(--vs-shadow-pop);
+    animation: vs-pop 0.18s ease;
+}
+
+.vs-tour__step {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--vs-primary);
+    margin-bottom: 6px;
+}
+
+.vs-tour__title {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.vs-tour__body {
+    margin: 0 0 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--vs-text-muted);
+}
+
+.vs-tour__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.vs-tour__nav {
+    display: flex;
+    gap: 7px;
+}
+
+.vs-link {
+    border: none;
+    background: transparent;
+    color: var(--vs-text-faint);
+    font-size: 12.5px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.vs-link:hover {
+    color: var(--vs-text);
+}
+
+/* ===================================================== Template gallery */
+.vs-gallery {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--vs-canvas);
+}
+
+.vs-topbar__name--static {
+    width: auto;
+    cursor: default;
+}
+
+.vs-gallery__bar {
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--vs-border);
+    background: var(--vs-surface);
+}
+
+.vs-gallery__crumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12.5px;
+    color: var(--vs-text-muted);
+}
+
+.vs-gallery__layout {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+}
+
+.vs-gallery__side {
+    width: 248px;
+    flex-shrink: 0;
+    padding: 18px 14px;
+    border-right: 1px solid var(--vs-border);
+    background: var(--vs-surface);
+    overflow-y: auto;
+}
+
+.vs-gallery__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    background: var(--vs-surface-muted);
+    border: 1px solid var(--vs-border);
+    border-radius: var(--vs-radius-md);
+    color: var(--vs-text-faint);
+}
+
+.vs-gallery__search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--vs-text);
+    outline: none;
+}
+
+.vs-cat-clear {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0 0 6px;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--vs-primary);
+    background: var(--vs-primary-soft);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.vs-gallery__grouplabel {
+    margin: 14px 8px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--vs-text-faint);
+}
+
+.vs-cat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--vs-text);
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+
+.vs-cat:hover {
+    background: var(--vs-surface-muted);
+}
+
+.vs-cat--on {
+    background: var(--vs-primary-soft);
+    color: var(--vs-primary-dark);
+    font-weight: 600;
+}
+
+.vs-gallery__main {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 24px 28px 40px;
+}
+
+.vs-gallery__title {
+    margin: 0 0 20px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.vs-gallery__empty {
+    color: var(--vs-text-faint);
+    font-size: 14px;
+}
+
+.vs-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+    align-items: stretch;
+}
+
+.vs-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 148px;
+    padding: 18px 18px 16px;
+    background: var(--vs-surface);
+    border: 1px solid var(--vs-border);
+    border-radius: var(--vs-radius-lg);
+    box-shadow: var(--vs-shadow-sm);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    overflow: hidden;
+    transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease,
+        border-color 0.12s ease;
+}
+
+.vs-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--vs-shadow-node-hover);
+    border-color: var(--vs-border-strong);
+}
+
+.vs-card__accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+}
+
+.vs-card__name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--vs-text);
+    padding-right: 24px;
+}
+
+.vs-card__desc {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--vs-text-muted);
+    flex: 1;
+}
+
+.vs-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.vs-card__tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--vs-text-muted);
+    background: var(--vs-surface-muted);
+    border: 1px solid var(--vs-border);
+    border-radius: 20px;
+    padding: 2px 9px;
+}
+
+.vs-card__icon {
+    position: absolute;
+    right: 16px;
+    bottom: 14px;
+    opacity: 0.85;
+}
+
+.vs-card--new {
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
+    border-style: dashed;
+    border-width: 2px;
+    background: var(--vs-surface-muted);
+}
+
+.vs-card--new:hover {
+    border-color: var(--vs-primary);
+    background: var(--vs-primary-soft);
+}
+
+.vs-card__plus {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin-bottom: 6px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--vs-primary), var(--vs-violet));
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.vs-card__newtitle {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--vs-primary-dark);
+}
+
+.vs-card__newsub {
+    font-size: 12.5px;
+    color: var(--vs-text-muted);
+}
+
+/* ========================================================== Animations */
+@keyframes vs-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes vs-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+}
+
+@keyframes vs-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
 }
