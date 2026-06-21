@@ -224,9 +224,13 @@ export const PipelineUI = () => {
                     zoomable
                     pannable
                     className={mapVisible ? "" : "vs-minimap--hidden"}
+                    style={{ backgroundColor: isDark ? "#0f1626" : "#ffffff" }}
                     nodeColor={isDark ? "#3b4664" : "#c7d2fe"}
+                    nodeStrokeColor={isDark ? "#55617f" : "#a5b4fc"}
                     maskColor={
-                        isDark ? "rgba(0,0,0,0.35)" : "rgba(15,23,42,0.06)"
+                        isDark
+                            ? "rgba(0,0,0,0.55)"
+                            : "rgba(15,23,42,0.06)"
                     }
                 />
             </ReactFlow>
