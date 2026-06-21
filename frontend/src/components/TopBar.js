@@ -56,7 +56,11 @@ export const TopBar = () => {
     return (
         <header className="vs-topbar">
             <div className="vs-topbar__left">
-                <img src="https://vectorshift.ai/VS_logo.png" width={30} />
+                <img
+                    src="https://vectorshift.ai/VS_logo.png"
+                    alt="logo"
+                    width={30}
+                />
                 <div className="vs-topbar__namewrap">
                     {inBuilder ? (
                         <input
