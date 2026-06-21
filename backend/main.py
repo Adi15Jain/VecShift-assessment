@@ -30,17 +30,21 @@ MAX_EDGES = int(os.getenv("MAX_EDGES", "20000"))
 
 app = FastAPI(title="VectorShift Pipeline API", version="1.0.0")
 
-# Configurable origins: comma-separated env var, defaulting to the CRA dev server
-# on both common ports. For a deployed frontend, set CORS_ORIGINS on the host
-# (e.g. on Render) to that origin — or "*" to allow any.
+# CORS. Exact origins come from CORS_ORIGINS (comma-separated), defaulting to the
+# local dev server on both common ports. The deployed frontend lives on Vercel,
+# whose preview/production URLs vary, so a regex (CORS_ORIGIN_REGEX) allows any
+# *.vercel.app origin. An origin is accepted if it's in the list OR matches the
+# regex. Set CORS_ORIGINS="*" to allow everything.
 _origins = os.getenv(
     "CORS_ORIGINS",
     "http://localhost:3000,http://localhost:3001,"
     "http://127.0.0.1:3000,http://127.0.0.1:3001",
 ).split(",")
+_origin_regex = os.getenv("CORS_ORIGIN_REGEX", r"https://.*\.vercel\.app")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in _origins if o.strip()] or ["*"],
+    allow_origin_regex=_origin_regex,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )

@@ -2,7 +2,10 @@
 // The single source of truth for the pipeline: nodes, edges, the id counters,
 // which screen is showing, the workflow name, and an undo/redo history stack.
 
-import { create } from "zustand";
+// createWithEqualityFn (zustand/traditional) lets a component pass a custom
+// equality fn — e.g. ui.js's useStore(selector, shallow) — without the v4
+// deprecation warning that the plain `create` hook now emits.
+import { createWithEqualityFn } from "zustand/traditional";
 import {
     addEdge,
     updateEdge,
@@ -20,7 +23,7 @@ const snapshot = (state) => ({
     edges: state.edges,
 });
 
-export const useStore = create((set, get) => ({
+export const useStore = createWithEqualityFn((set, get) => ({
     nodes: [],
     edges: [],
     nodeIDs: {},
