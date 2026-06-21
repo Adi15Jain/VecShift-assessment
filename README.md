@@ -331,19 +331,33 @@ and save/load pipelines to the backend.
 
 ## 12. Running it
 
-```bash
-# Frontend  → http://localhost:3000
-cd frontend && npm i && npm start
+**Quickest path — frontend only, talking to the live backend on Render:**
 
-# Backend   → http://localhost:8000
+```bash
+cd frontend && npm i && npm start      # → http://localhost:3001
+```
+
+`frontend/.env` points the app at the deployed backend
+(`REACT_APP_API_URL=https://vecshift-assessment.onrender.com`) and pins the dev
+server to **port 3001** (the origin the deployed backend's CORS allows). So
+`npm start`, then **Run** — no local backend needed. Render's free tier sleeps
+when idle, so the first Run can take ~50s to wake (the app shows a toast; retry).
+
+**Or run the backend locally** (set `REACT_APP_API_URL=http://localhost:8000` in
+`frontend/.env`):
+
+```bash
+# Backend  → http://localhost:8000
 cd backend && pip install -r requirements.txt && uvicorn main:app --reload
 
 # Backend tests
-cd backend && pytest          # 17 passed
+cd backend && pytest                   # 17 passed
 ```
 
 The app opens on the **Create Pipeline** gallery (welcome tutorial on first
-load). Pick a template — or start from scratch, drag nodes from the left, connect
-them — and hit **Run** to see the node/edge counts and DAG validation.
-_(Optional: `REACT_APP_API_URL` for the frontend; `MAX_NODES` / `MAX_EDGES` /
-`CORS_ORIGINS` for the backend.)_
+load). Pick a template — or start from scratch, drag nodes, connect them — and
+hit **Run** to see the node/edge counts and DAG validation.
+
+_Env knobs: `REACT_APP_API_URL` / `PORT` (frontend); `MAX_NODES` / `MAX_EDGES` /
+`CORS_ORIGINS` (backend — set `CORS_ORIGINS` on Render to your frontend origin,
+or `*`, if you deploy the frontend)._

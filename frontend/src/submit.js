@@ -7,7 +7,11 @@ import { useState, useCallback } from "react";
 import { useStore } from "./store";
 import { toast } from "./toast/toastStore";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+// Defaults to the backend deployed on Render. Override with REACT_APP_API_URL
+// (e.g. http://localhost:8000) to run against a local backend.
+const API_URL =
+    process.env.REACT_APP_API_URL ||
+    "https://vecshift-assessment.onrender.com";
 
 export const useRunPipeline = () => {
     const [result, setResult] = useState(null);
@@ -67,8 +71,9 @@ export const useRunPipeline = () => {
         } catch (err) {
             toast.error(
                 "Backend unreachable",
-                `Start it with: uvicorn main:app --reload (${API_URL}).`,
-                { duration: 7000 },
+                `Couldn't reach ${API_URL}. On Render's free tier the first ` +
+                    `request can take ~50s to wake the service — try again.`,
+                { duration: 8000 },
             );
         } finally {
             setRunning(false);

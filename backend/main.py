@@ -30,10 +30,13 @@ MAX_EDGES = int(os.getenv("MAX_EDGES", "20000"))
 
 app = FastAPI(title="VectorShift Pipeline API", version="1.0.0")
 
-# Configurable origins: comma-separated env var, defaulting to the CRA dev server.
+# Configurable origins: comma-separated env var, defaulting to the CRA dev server
+# on both common ports. For a deployed frontend, set CORS_ORIGINS on the host
+# (e.g. on Render) to that origin — or "*" to allow any.
 _origins = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:3001,http://127.0.0.1:3000",
+    "http://localhost:3000,http://localhost:3001,"
+    "http://127.0.0.1:3000,http://127.0.0.1:3001",
 ).split(",")
 app.add_middleware(
     CORSMiddleware,
